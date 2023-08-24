@@ -3,9 +3,9 @@
              KindSignatures,
              GADTs #-}
 
-module Environment where
+module DR.Environment where
 
-import AbstractSyntax
+import DR.AbstractSyntax
 
 
 {-

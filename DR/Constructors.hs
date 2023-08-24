@@ -5,10 +5,10 @@
              FlexibleContexts #-} 
 
 
-module Constructors where
+module DR.Constructors where
 
-import AbstractSyntax
-import Environment
+import DR.AbstractSyntax
+import DR.Environment
 
 -- Variables
 var :: HList env -> SNat (n :: Nat) -> Exp env (Lookup env n) '[] (n ': '[])
@@ -60,13 +60,12 @@ declassify :: Exp env l' d vars -> SeType l -> Exp env l vars vars
 declassify e l = Declassify e l 
 
 -- Term sequence
-infixr 1 \.
-(\.)
-  :: (Intersection u1 d2 ~ '[]) =>
-     Stm env pc u1 d1
-     -> Stm env pc' u2 d2
-     -> Stm env (Meet pc pc') (Union u1 u2) (Union d1 d2)
-(\.) c1 c2 = Seq c1 c2
+infixr 1 >>>
+(>>>) :: (Intersection u1 d2 ~ '[]) =>
+          Stm env pc u1 d1 -> 
+          Stm env pc' u2 d2 -> 
+          Stm env (Meet pc pc') (Union u1 u2) (Union d1 d2)
+(>>>) c1 c2 = Seq c1 c2
 
 -- Skip
 skip = Skip

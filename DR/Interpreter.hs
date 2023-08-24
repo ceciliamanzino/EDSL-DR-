@@ -1,8 +1,8 @@
 {-# LANGUAGE TypeFamilies #-}
 
-module Interpreter where
+module DR.Interpreter where
 
-import AbstractSyntax
+import DR.AbstractSyntax
 import qualified Data.Map.Strict as M
 import Data.Maybe
 import Control.Monad.State 
