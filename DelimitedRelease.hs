@@ -10,11 +10,11 @@
 
 
 
-module Source.DelimitedRelease (Nat(Zero, Succ), SType(Low, High), SeType(L, H), SNat(SZero, SSucc), 
-                                Exp(Var, IntLit, BoolLit, Ope, Declassify), 
-                                Op(Plus, Minus, Mult, Div, Exp, Mod, And, Or, Gt, GtE, Lt, LtE, Eq, NotEq),
-                                Stm(Skip, Ass, Seq, If, While),
-                                Lookup, Meet, Union, Intersection) where
+module DelimitedRelease (Nat(Zero, Succ), SType(Low, High), SeType(L, H), SNat(SZero, SSucc), 
+                         Exp(Var, IntLit, BoolLit, Ope, Declassify), 
+                         Op(Plus, Minus, Mult, Div, Exp, Mod, And, Or, Gt, GtE, Lt, LtE, Eq, NotEq),
+                         Stm(Skip, Ass, Seq, If, While),
+                         Lookup, Meet, Union, Intersection) where
 
 
 -- natural numbers
