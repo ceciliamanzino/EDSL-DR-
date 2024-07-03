@@ -68,3 +68,24 @@ fromBool True = 1
 
 toBool 1 = True
 toBool 0 = False
+
+
+---------------------------------------
+-- Term evaluator
+---------------------------------------
+      
+-- Evaluates multiple steps of a command, until it reaches Skip
+evalStm :: Stm a b c d -> Result ()
+evalStm Skip          = return ()
+evalStm (Ass x e)     = do v <- evalExp e
+                           update (toInt x) v
+evalStm (Seq c0  c1)  =  evalStm c0 >> (evalStm c1) 
+evalStm (If b c0 c1)  = do vb <- evalExp b
+                           if vb == 1 then evalStm c0 else evalStm c1 
+evalStm w@(While b c) = do vb <- evalExp b
+                           if vb == 1 then evalStm (Seq c w) else return () 
+
+
+
+
+
