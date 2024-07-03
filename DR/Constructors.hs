@@ -1,23 +1,33 @@
-{-# LANGUAGE DataKinds, 
-             KindSignatures, 
-             TypeOperators, 
+{-# LANGUAGE DataKinds,
              GADTs, 
-             FlexibleContexts #-} 
+             TypeFamilies,
+             PolyKinds, 
+             TypeOperators,
+             MultiParamTypeClasses, 
+             FlexibleInstances,
+             FlexibleContexts,
+             UndecidableInstances #-}
 
+module Constructors where
 
-module DR.Constructors where
-
-import DR.AbstractSyntax
-import DR.Environment
+import AbstractSyntax
+import Environment
+import Control.Monad.State 
+import qualified Data.Map.Strict as M
+import Data.Maybe
+import TwoLevels
 
 -- Variables
-var :: HList env -> SNat (n :: Nat) -> Exp env (Lookup env n) '[] (n ': '[])
-var en n = Var n
+-- var :: HList env -> SNat (n :: Nat) -> Exp env (Lookup env n) '[] (n ': '[])
+-- var en n = Var n
 
 -- Integer literals
 infixr 6 `int`, `bool`
 int :: Int -> Exp env 'Low '[] '[]
 int = IntLit
+
+num :: Exp env 'Low '[] '[] -> Int
+num (IntLit n) = n
 
 -- Boolean literals
 bool :: Bool -> Exp env 'Low '[] '[]
@@ -28,31 +38,47 @@ infixr 6 +., -.
 infixr 7 *., //., %.
 
 infixr 5 >., >=., <., <=.
-infixr 4 =., \=.
+infixr 4 =., \=. 
 infixr 3 &&.
 infixr 2 ||.
 
+-- boolean operators
+neg = OpUn (UnBool not) 
+(&&.) = OpBin (BinBool (&&))  
+(||.) = OpBin (BinBool (||))   
 
-x +. y = Ope Plus x y
-x -. y = Ope Minus x y
-x *. y = Ope Mult x y
-x >. y = Ope Gt x y
-x >=. y = Ope GtE x y
-x <. y = Ope Lt x y
-x <=. y = Ope LtE x y
-x =. y = Ope Eq x y
-x \=. y = Ope NotEq  x y
-x ^. y = Ope Exp x y
-x //. y = Ope Div x y 
-x %. y = Ope Mod x y 
-x &&. y = Ope And x y 
-x ||. y = Ope Or x y  
+-- integer operators
+(+.)  = OpBin (BinInt (+))
+(-.)  = OpBin (BinInt (-)) 
+(*.)  = OpBin (BinInt (*)) 
+(//.) = OpBin (BinInt div)  
+(%.)  = OpBin (BinInt mod)
 
+-- relational operators  
+(^.)  = OpBin (BinInt (^)) 
+(>.)  = OpBin (PredInt (>)) 
+(>=.) = OpBin (PredInt (>=)) 
+(<.)  = OpBin (PredInt (<)) 
+(<=.) = OpBin (PredInt (<=)) 
+(=.)  = OpBin (PredInt (==)) 
+(\=.) = OpBin (PredInt (/=))  
 
+-- 
+lift2 :: (Int -> Int -> Int) -> Exp env st d var1  -> Exp env st' d' var2  -> 
+          Exp env (Join st st') (Union d d') (Union var1 var2) 
+lift2 f =  OpBin (BinInt f) 
+
+lift :: (Int -> Int) -> Exp env st d var -> Exp env st d var
+lift f = OpUn (UnInt f) 
+           
 
 -- Assigment
 infixr 2 =:
-(=:) n exp = Ass n exp
+(=:) :: LEq st (Lookup env n) => 
+           Exp env (Lookup env n) '[] '[n] 
+        -> Exp env st d var 
+        -> Stm env (Lookup env n) '[n] d 
+(=:) (Var n) exp = Ass n exp
 
 
 -- The expression declassify
