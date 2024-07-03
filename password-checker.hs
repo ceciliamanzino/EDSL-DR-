@@ -1,67 +1,38 @@
-import DR.AbstractSyntax
-import DR.Constructors
-import DR.Environment
-import DR.Interpreter
+import AbstractSyntax
+import Constructors
+import Environment
+import Interpreter
+import TwoLevels
 
 import qualified Data.Map.Strict as M
 
-{-
-Example 3) Password checker
-
--}
 -------------------------------
 -- Security environment
 ----------------------------
-
-env = (zero, H) :-: (one, L) :-: (two, H) :-: (three, H) :-: (four, H) :-: Nil 
-
--- variables
-pwd = var env zero
-userId = var env one
-pwdUserIdHash = var env two
-tmp = var env three
-newPwd = var env four
-
------------------------------------------
----- Secure Program
------------------------------------------
-
-
 -- buildHash applies Cantor pairing function to the password and userId given as input to build the hash.
-         
-buildHash = ((pwd +. userId)  *. (pwd +. userId +. int 1)) //. int 2  +. userId
+
+cantor k1 k2 = ((k1 +. k2)  *. (k1 +. k2 +. int 1)) //. int 2  +. k2 
 
 -- hash applies buildHash to the password and userId given as input
 
-hash = declassify buildHash L 
+hash pwd id = declassify (cantor pwd id) L 
+
+-- variable declaration 
+(newPwd', env1) = newVar H initEnv
+(oldPwd', env2) = newVar H env1
+(userId', env3) = newVar L env2
+(pwdIdHash, env) = newVar L env3
+
+-- variables
+newPwd = updateEnv env newPwd'
+oldPwd = updateEnv env oldPwd'  
+userId = updateEnv env userId'
 
 
--- match checks if the password image, or hash, from the database is equal to the hash of 
--- the user input
+updatePwd  =  iff (pwdIdHash  =. hash oldPwd userId)
+                  (pwdIdHash =: hash newPwd userId) 
+                  skip
 
-match = three =: (pwdUserIdHash  =. hash)
-
--- Database 
-database = M.insert 0 23 (M.insert 1 45 (M.insert 2 2391 (M.insert 3 0 (M.insert 4 67 initMemory))))
-
-
-test1 = eval match database -- fromList [(0,23),(1,45),(2,2391),(3,1),(4,67)]
-
-
-{-
-
-updatePwd updates the old password hash 
-by querying the old password, matching its hash and (if
-matched) updating the hashed password with the hash of the password.
-          
--}
-
-updatePwd = iff (pwdUserIdHash  =. hash)
-                (two =: declassify (((newPwd +. userId)  *. (newPwd +. userId +. int 1)) //. int 2  +. userId) L) 
-                skip
-
-
-test2 = eval updatePwd database -- fromList [(0,23),(1,45),(2,6373),(3,0),(4,67)]
 
 
 
