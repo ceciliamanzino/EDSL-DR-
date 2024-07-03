@@ -1,7 +1,8 @@
-import DR.AbstractSyntax
-import DR.Constructors
-import DR.Environment
-import DR.Interpreter
+import AbstractSyntax
+import Constructors
+import Environment
+import Interpreter
+import TwoLevels
 
 import qualified Data.Map.Strict as M
 
@@ -28,34 +29,30 @@ while (n ≥ 0) do
 -- Security environment for this example
 -----------------------------------------
 
-env = (zero, H) :-: (one, L) :-: (two, L) :-: (three, L) :-: (four, L)  :-: Nil
+-- variable declarations
+(h1 , env1) = newvar H initEnv
+(l1 , env2) = newVar L env1
+(k1, env3) = newVar L env2
+(n, env) =  newVar L env3
 
-
--- variables 
-h = var env zero
-l = var env one
-k = var env two
-n = var env three
+-- actualice variables with the last environment
+h = updateEnv env h1 
+l = updateEnv env l1 
+k = updateEnv env k1
 
 ------------------------------------------
 -- Unsecure Program
 ------------------------------------------
+secureWallet = iff (declassify (h  >=. k) L)
+                   (h =: h -. k  >>> l =: l +. k)
+                   skip
 
 
 -- This program is rejected by Haskell type checker
 
-attack  = one =: int 0 >>> 
-          while (n >. int 0)  
-                (two =:  int 2 ^. n -. int 1) >>> 
-	  (iff (declassify (h >=. k) L) 
-	       (zero =:  h -. k >>> one =:  l +. k) 
-	       skip) >>>  
-	  (three =:  n -. int 1)
-
-
-
-          
-
-      
-
+attack  = l =: int 0 >>> 
+          while (n >=. int 0)  
+                ((k =:  int 2 ^. n -. int 1) >>> 
+	         secureWallet  >>>  
+	         (n =:  n -. int 1))
 
