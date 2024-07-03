@@ -1,10 +1,21 @@
-import DR.AbstractSyntax
-import DR.Constructors
-import DR.Environment
-import DR.Interpreter
+{-# LANGUAGE DataKinds,
+             GADTs, 
+             TypeFamilies,
+             PolyKinds, 
+             TypeOperators,
+             MultiParamTypeClasses, 
+             FlexibleInstances,
+             FlexibleContexts,
+             UndecidableInstances #-}
+
+import AbstractSyntax
+import Constructors
+import Environment
+import Interpreter
+import TwoLevels
+
 
 import qualified Data.Map.Strict as M
-
 
 {-
 Example 3) Password checker attack.
@@ -16,7 +27,6 @@ while (n = 0) do
     then (h := h - k; l := l + k) 
     else skip;
   n := n - 1
-      
 -}
 
 
@@ -27,46 +37,40 @@ memory =  M.insert 0 23 (M.insert 1 45 (M.insert 2 23391 (M.insert 3 500 (M.inse
 -- Security environment
 --------------------------------------
 
-env = (zero, L) :-: (one, H) :-: (two, L) :-: (three, L) :-: (four, L) :-: Nil
+-- variable declaration 
+(l', env1) = newVar L initEnv
+(h', env2) = newVar H env1
+(k', env3) = newVar L env2
+(n , env) = newVar L env3
 
 -- variables 
-l = var env zero
-h = var env one
-k = var env two
-n = var env three
-tmp = var env four
+l = updateEnv env l'
+h = updateEnv env h'
+k = updateEnv env k'
 
-
-
-sign = iff ((declassify h L) -. k +. int 1 >. int 0) 
-           (four =: int 1)
-           (iff (( declassify h L) -. k +. int 1 <. int 0)
-                (four =: int (-1))
-                (four =: int 0))
-
-hashSignal = ((tmp +. int 0)  *. (tmp +. int 0 +. int 1)) //. int 2  +. int 1
-hash10 =   ((int 1 +. int 0)  *. (int 1 +. int 0 +. int 1)) //. int 2  +. int 1
+cantor k1 k2 = ((k1 +. k2)  *. (k1 +. k2 +. int 1)) //. int 2  +. k2 
+         
+hash pwd id = declassify (cantor pwd id) L 
 
 
 ----------------------------------
 --- Unsecure Program
 ---------------------------------
-
-
- 
-pwdAttack = zero =: int 0 >>>
-            (while (n >. int 0) 
-	     ( sign  >>> two =:  int 2 ^. (n -. int 1)   >>>   
-	     (iff (hashSignal  =. hash10 )       
-         	          (one =: h -. k >>> zero =: l +. k)
- 	          skip) >>> 
-                   three =:  n -. int 1))
+      
+signo e = lift sgn e
+            where sgn x | x == 0 = 0
+                        | x > 0  = 1
+                        | x < 0  = -1
 
 
 
+{-
+pwdAttack = l =: int 0 >>>
+            (while (n >=. int 0)
+                   ( k =:  int 2 ^. (n -. int 1)  >>> 
+	             (iff (hash (signo (h -. k +. (int 1))) (int 0)  =. hash (int 1) (int 0)) 
+	                  (h =: h -. k  >>> l =: l +. k) 
+	                  skip) >>>
+	             n =:  n -. int 1))
 
-
-
-
-
-
+-}
