@@ -1,86 +1,95 @@
 {-# LANGUAGE DataKinds,
              TypeOperators,
              KindSignatures,
+             TypeFamilies,
              GADTs #-}
 
-module DR.Environment where
+module Environment where
 
-import DR.AbstractSyntax
+import AbstractSyntax
+import TwoLevels
+
+import Data.Kind (Type)
 
 
-{-
+data HList :: [SType] -> Type where
+  HNil :: HList '[]
+  (:-) :: SType -> HList as -> HList (a:as)
 
-HList is a data type defined to represent the environment as list of types. 
-All of his elements have kind (Nat, SType).
-See below an example on how to use this data type.
-
--}
 
 infixr 5 :-:
 
-data HList :: [(Nat , SType)] -> * where
-    Nil :: HList '[] 
-    (:-:) :: (SNat n , SeType s) -> HList xs -> HList ('(n , s) ': xs) 
+
+type family Next (xs :: [(Nat , SType)]) :: Nat where 
+    Next '[] = Zero 
+    Next ('(m, x) ': env) = Succ m   
+
+-- data type used to represent the security environment 
+data Env :: [(Nat , SType)] -> * where
+    Nil :: Env '[] 
+    (:-:) :: SeType s1 -> Env xs -> Env ('( Next xs , s1) ': xs) 
+
+------------------------------------------
 
 
--- types of the variables 
+------------------------------------------------------------------------
+--- Constructors for defining the security environment of variables ----
+------------------------------------------------------------------------
 
-type Zero = 'Zero
-type One = 'Succ 'Zero
-type Two = 'Succ One
-type Three = 'Succ Two
-type Four = 'Succ Three
-type Five = 'Succ Four
-type Six = 'Succ Five
-type Seven = 'Succ Six
-type Eight = 'Succ Seven
-type Nine = 'Succ Eight
+-- Introduce el entorno de variables
+setEnv :: Env env -> Stm env 'High '[] '[]
+setEnv env = Skip
 
--- Variables
+-- given an environment this function return the next natural number 
+-- that will be asociated to a new variable
+newId :: Env xs -> SNat (Next xs)
+newId Nil = SZero 
+newId (s :-: env) = SSucc (newId env) 
 
-zero  :: SNat Zero
-zero = SZero
 
-one  :: SNat One
-one = SSucc SZero
+-- given a security type and the actual security environment
+-- this function return a new variable associted with the given securirty type
+-- and the updated environment
+newVar ::   SeType (l :: SType)      -- security type of the new variable 
+         -> Env  xs -- security environment
+         -> (Exp ('( Next xs , l) ': xs) l '[] '[ Next xs ] , 
+             Env ('( Next xs , l) ': xs))
+newVar st env  = (Var (newId env) , st :-: env )
 
-two  :: SNat Two
-two = SSucc one
+  
+-- Every time a variable is added to the environment, 
+-- the environment of the variables that were previously defined must be updated
+-- This function receives the new environment and an old variable
+-- and returns the same variable, but with the environmet updated in its type
+updateEnv :: (Lookup env n) ~ (Lookup env' n) =>
+          Env env' ->  
+          Exp env (Lookup env n) '[] '[n] ->           
+          Exp env' (Lookup env' n) '[] '[n]
+updateEnv env (Var n) = Var n    
 
-three :: SNat Three
-three = SSucc two
+initEnv = Nil
 
-four :: SNat Four
-four = SSucc three
+-------------------------------------------------------------
+--------- Example of use  -----------------------------------
+-------------------------------------------------------------
 
-five :: SNat Five
-five = SSucc four
-
-six :: SNat Six
-six = SSucc five
-
-seven :: SNat Seven
-seven = SSucc six
-
-eight :: SNat Eight
-eight = SSucc seven
-
-nine :: SNat Nine
-nine = SSucc eight
+-- env = L :-: H :-:  H :-: Nil
 
 
 {-
+ Here we show with an example the declaration of the following variables: 
+ {h : High, l: Low, m : Medium} 
+ 
+-- We declare the variables with their security levels
+(h1 , env1) = newVar H initEnv
+(m1 , env2) = newVar M env1
+(l, env) = newVar L env2
 
-We can build our own environment using HList data type, using the numbers defined previously.
-This way we can build a value-level list, that contains a heterogeneous list of types as a type. 
-For example: 
 
-env = (zero, L) :-: (one, H) :-: (two, H) :-: (three, H) :-: (four, H) :-: Nil
-
+-- we update the variables h and m with the final environment
+h = updateEnv env h1
+m = updateEnv env m1
 -}
-
-
-
 
 
 
