@@ -1,7 +1,8 @@
-import DR.AbstractSyntax
-import DR.Constructors
-import DR.Environment
-import DR.Interpreter
+import AbstractSyntax
+import Constructors
+import Environment
+import Interpreter
+import TwoLevels
 
 import qualified Data.Map.Strict as M
 
@@ -25,23 +26,24 @@ if  declassify(h >= k, low) then (h := h - k;l := l + k) else Skip
 -- Security environment for this example
 ------------------------------------------
 
-env = (zero, H) :-: (one, L) :-: (two, L) :-: Nil
+-- env = (zero, H) :-: (one, L) :-: (two, L) :-: Nil
 
 -- variables 
-h = var env zero
-l = var env one
-k = var env two
+(h', env1) = newVar H initEnv
+(l', env2) = newVar L env1
+(k , env) = newVar L env2
 
+-- actualize evironmet in variables
+h = updateEnv env h' 
+l = updateEnv env l'
 
 secureWallet = iff (declassify (h  >. k) L)
-                   (zero =: h -. k  >>> one =: l +. k)
+                   (h =: h -. k  >>> l =: l +. k)
                    skip
 
 
 -- Testing with a different environment.
 memory =  M.insert 0 500 (M.insert 1 0 (M.insert 2 45 initMemory))
 
-
 result = eval secureWallet memory -- fromList [(0,455),(1,45),(2,45)]
-
 
