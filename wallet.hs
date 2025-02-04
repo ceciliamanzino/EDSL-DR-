@@ -1,8 +1,7 @@
-import AbstractSyntax
-import Constructors
-import Environment
-import Interpreter
-import TwoLevels
+import DR.Constructors
+import DR.Environment  
+import DR.Interpreter
+import DR.ThreeLevels    
 
 import qualified Data.Map.Strict as M
 
@@ -42,8 +41,11 @@ secureWallet = iff (declassify (h  >. k) L)
                    skip
 
 
+
 -- Testing with a different environment.
 memory =  M.insert 0 500 (M.insert 1 0 (M.insert 2 45 initMemory))
 
-result = eval secureWallet memory -- fromList [(0,455),(1,45),(2,45)]
+
+main = eval secureWallet memory -- fromList [(0,455),(1,45),(2,45)]
+
 

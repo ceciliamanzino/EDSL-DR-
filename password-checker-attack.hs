@@ -8,12 +8,10 @@
              FlexibleContexts,
              UndecidableInstances #-}
 
-import AbstractSyntax
-import Constructors
-import Environment
-import Interpreter
-import TwoLevels
-
+import DR.Constructors
+import DR.Environment  
+import DR.Interpreter
+import DR.ThreeLevels 
 
 import qualified Data.Map.Strict as M
 
@@ -57,13 +55,13 @@ hash pwd id = declassify (cantor pwd id) L
 --- Unsecure Program
 ---------------------------------
       
-signo e = lift sgn e
+signo e = toUnOp sgn e
             where sgn x | x == 0 = 0
                         | x > 0  = 1
                         | x < 0  = -1
 
 
-
+-- this code is rejected by GHC
 {-
 pwdAttack = l =: int 0 >>>
             (while (n >=. int 0)
@@ -74,3 +72,11 @@ pwdAttack = l =: int 0 >>>
 	             n =:  n -. int 1))
 
 -}
+
+
+
+
+
+
+
+

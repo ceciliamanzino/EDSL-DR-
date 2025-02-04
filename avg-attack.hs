@@ -1,8 +1,7 @@
-import AbstractSyntax
-import Constructors
-import Environment
-import Interpreter
-import TwoLevels
+import DR.Constructors
+import DR.Environment  
+import DR.Interpreter
+import DR.ThreeLevels 
 
 import qualified Data.Map.Strict as M
 
@@ -57,10 +56,14 @@ res = eval avgSalaries memory --  result:  fromList [(0,5),(1,10),(2,3),(3,2)]
 -- Unsecure program
 -------------------------
 
--- This program is rejected by the Haskell type checker
+-- This program is rejected by GHC
 
-
+{-
 unsecureProgram = h2 =: h1 >>>
                   h3 =: h1 >>>
                   avgSalaries 
+
+-}
+
+
 

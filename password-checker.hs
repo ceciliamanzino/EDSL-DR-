@@ -1,8 +1,7 @@
-import AbstractSyntax
-import Constructors
-import Environment
-import Interpreter
-import TwoLevels
+import DR.Constructors
+import DR.Environment  
+import DR.Interpreter
+import DR.ThreeLevels 
 
 import qualified Data.Map.Strict as M
 
@@ -32,6 +31,7 @@ userId = updateEnv env userId'
 updatePwd  =  iff (pwdIdHash  =. hash oldPwd userId)
                   (pwdIdHash =: hash newPwd userId) 
                   skip
+
 
 
 
