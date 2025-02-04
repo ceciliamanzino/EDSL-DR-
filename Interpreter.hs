@@ -17,18 +17,17 @@ type Env = M.Map Int Int
 -- Empty environment
 initMemory :: Env
 initMemory = M.empty
-                             
+
+                          
 data GlState = GlState {
   en :: Env,         -- environment of values
   trace :: [Int]     -- trace of outputs
 }                             
   deriving Show                             
+
 -----------------------------------
 ---  MonadDR
 -----------------------------------
-
--- Mónada CSP
--- class (MonadState GlState m, MaybeT m) => MonadDR m where
 
 type Result a = StateT GlState (MaybeT IO) a
 
